@@ -29,6 +29,8 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
 	private final SparseArray<Cell.Listener> typeListenerMapping = new SparseArray<>();
 	protected List<ITEM> items = new ArrayList<>();
 
+	private static final String TAG = "CellAdapter";
+
 	private LayoutInflater layoutInflater;
 
 	public CellAdapter(Context context) {
@@ -110,13 +112,24 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
 
 	@Override
 	public int getItemCount() {
-		return items.size();
+		if (items != null) {
+			return items.size();
+		} else {
+			Log.e(TAG, "getItemCount() items is null");
+			return 0;
+		}
 	}
 
+	@Nullable
 	public ITEM getItem(int position) {
-		return items.get(position);
+		if (items != null) {
+			return items.get(position);
+		} else {
+			return null;
+		}
 	}
 
+	@Nullable
 	public List<ITEM> getItems() {
 		return items;
 	}
@@ -126,6 +139,11 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
 	}
 
 	public void clear() {
-		items.clear();
+		if (items != null) {
+			items.clear();
+			notifyDataSetChanged();
+		} else {
+			Log.e(TAG, "clear() items is null");
+		}
 	}
 }
