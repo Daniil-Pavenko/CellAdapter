@@ -21,129 +21,134 @@ import androidx.recyclerview.widget.RecyclerView;
  */
 public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
 
-	/**
-	 * Map<model, Cell child for introducing model></>
-	 */
-	private final Map<Class, Class<? extends Cell>> itemCellMap = new HashMap<>();
-	private final List<Class> viewTypes = new ArrayList<>();
-	private final SparseArray<Cell.Listener> typeListenerMapping = new SparseArray<>();
-	protected List<ITEM> items = new ArrayList<>();
+    /**
+     * Map<model, Cell child for introducing model></>
+     */
+    private final Map<Class, Class<? extends Cell>> itemCellMap = new HashMap<>();
+    private final List<Class> viewTypes = new ArrayList<>();
+    private final SparseArray<Cell.Listener> typeListenerMapping = new SparseArray<>();
+    protected List<ITEM> items = new ArrayList<>();
 
-	private static final String TAG = "CellAdapter";
+    private static final String TAG = "CellAdapter";
 
-	private LayoutInflater layoutInflater;
+    private LayoutInflater layoutInflater;
 
-	public CellAdapter(Context context) {
-		layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	}
+    public CellAdapter(Context context) {
+        layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
 
-	public void registerCell(Class<?> itemClass,
-							 Class<? extends Cell> cellClass) {
-		registerCell(itemClass, cellClass, null);
-	}
+    public void registerCell(Class<?> itemClass,
+                             Class<? extends Cell> cellClass) {
+        registerCell(itemClass, cellClass, null);
+    }
 
-	public <ITEM_CLASS>void registerCell(Class<? extends ITEM_CLASS> itemClass,
-							 Class<? extends Cell> cellClass,
-							 @Nullable Cell.Listener<?> cellListener) {
-		itemCellMap.put(itemClass, cellClass);
-		int type = viewTypes.indexOf(itemClass);
-		if (type == -1) {
-			viewTypes.add(itemClass);
-		}
-		registerListener(itemClass, cellListener);
-	}
+    public <ITEM_CLASS> void registerCell(Class<? extends ITEM_CLASS> itemClass,
+                                          Class<? extends Cell> cellClass,
+                                          @Nullable Cell.Listener<?> cellListener) {
+        itemCellMap.put(itemClass, cellClass);
+        int type = viewTypes.indexOf(itemClass);
+        if (type == -1) {
+            viewTypes.add(itemClass);
+        }
+        registerListener(itemClass, cellListener);
+    }
 
-	private <ITEM_CLASS>void registerListener(Class<? extends ITEM_CLASS> itemClass,
-								  @Nullable Cell.Listener<?> cellListener) {
-		int index = viewTypes.indexOf(itemClass);
-		if (index < 0)
-			throw new IllegalStateException(itemClass.getSimpleName() + " is not registered as Cell");
-		typeListenerMapping.put(index, cellListener);
-	}
+    private <ITEM_CLASS> void registerListener(Class<? extends ITEM_CLASS> itemClass,
+                                               @Nullable Cell.Listener<?> cellListener) {
+        int index = viewTypes.indexOf(itemClass);
+        if (index < 0)
+            throw new IllegalStateException(itemClass.getSimpleName() + " is not registered as Cell");
+        typeListenerMapping.put(index, cellListener);
+    }
 
-	@Override
-	public Cell onCreateViewHolder(ViewGroup parent, int viewType) {
-		Class itemClass = viewTypes.get(viewType);
-		Class<? extends Cell> cellClass = itemCellMap.get(itemClass);
-		Cell cell = buildCell(cellClass, parent);
-		cell.setCellDelegate(typeListenerMapping.get(viewType));
-		return cell;
-	}
+    @Override
+    public Cell onCreateViewHolder(ViewGroup parent, int viewType) {
+        Class itemClass = viewTypes.get(viewType);
+        Class<? extends Cell> cellClass = itemCellMap.get(itemClass);
+        Cell cell = buildCell(cellClass, parent);
+        cell.setCellDelegate(typeListenerMapping.get(viewType));
+        return cell;
+    }
 
-	private Cell buildCell(Class<? extends Cell> cellClass, ViewGroup parent) {
-		Layout layoutAnnotation = cellClass.getAnnotation(Layout.class);
-		View cellView = layoutInflater.inflate(layoutAnnotation.value(), parent, false);
-		RecyclerView.ViewHolder cellObject = null;
-		try {
-			Constructor<? extends RecyclerView.ViewHolder> constructor = cellClass.getConstructor(View.class);
-			cellObject = constructor.newInstance(cellView);
-		} catch (Exception e) {
-			Log.e("CellAdapter", "Can't create cell: " + e.getMessage());
-		}
-		return (Cell) cellObject;
-	}
+    private Cell buildCell(Class<? extends Cell> cellClass, ViewGroup parent) {
+        Layout layoutAnnotation = cellClass.getAnnotation(Layout.class);
+        View cellView = layoutInflater.inflate(layoutAnnotation.value(), parent, false);
+        RecyclerView.ViewHolder cellObject = null;
+        try {
+            Constructor<? extends RecyclerView.ViewHolder> constructor = cellClass.getConstructor(View.class);
+            cellObject = constructor.newInstance(cellView);
+        } catch (Exception e) {
+            Log.e("CellAdapter", "Can't create cell: " + e.getMessage());
+        }
+        return (Cell) cellObject;
+    }
 
-	@Override
-	public void onBindViewHolder(Cell cell, int position) {
-		ITEM item = getItem(position);
-		cell.prepareForReuse();
-		cell.fillWithItem(item);
-	}
+    @Override
+    public void onBindViewHolder(Cell cell, int position) {
+        ITEM item = getItem(position);
+        cell.prepareForReuse();
+        cell.fillWithItem(item);
+    }
 
-	@Override
-	public long getItemId(int position) {
-		return super.getItemId(position);
-	}
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
 
-	public int getClassItemViewType(Class<?> itemClass) {
-		int index = viewTypes.indexOf(itemClass);
-		if (index < 0) {
-			throw new IllegalArgumentException(itemClass.getSimpleName() + " is not registered");
-		}
-		return index;
-	}
+    public int getClassItemViewType(Class<?> itemClass) {
+        int index = viewTypes.indexOf(itemClass);
+        if (index < 0) {
+            throw new IllegalArgumentException(itemClass.getSimpleName() + " is not registered");
+        }
+        return index;
+    }
 
-	@Override
-	public int getItemViewType(int position) {
-		ITEM ITEM = items.get(position);
-		Class itemClass = ITEM.getClass();
-		return getClassItemViewType(itemClass);
-	}
+    @Override
+    public int getItemViewType(int position) {
+        ITEM ITEM = items.get(position);
+        try {
+            Class itemClass = ITEM.getClass();
+            return getClassItemViewType(itemClass);
+        } catch (Exception e) {
+            Log.e(this.getClass().getSimpleName(), "getItemViewType: " + e.getMessage());
+            return 0;
+        }
+    }
 
-	@Override
-	public int getItemCount() {
-		if (items != null) {
-			return items.size();
-		} else {
-			Log.e(TAG, "getItemCount() items is null");
-			return 0;
-		}
-	}
+    @Override
+    public int getItemCount() {
+        if (items != null) {
+            return items.size();
+        } else {
+            Log.e(TAG, "getItemCount() items is null");
+            return 0;
+        }
+    }
 
-	@Nullable
-	public ITEM getItem(int position) {
-		if (items != null) {
-			return items.get(position);
-		} else {
-			return null;
-		}
-	}
+    @Nullable
+    public ITEM getItem(int position) {
+        if (items != null) {
+            return items.get(position);
+        } else {
+            return null;
+        }
+    }
 
-	@Nullable
-	public List<ITEM> getItems() {
-		return items;
-	}
+    @Nullable
+    public List<ITEM> getItems() {
+        return items;
+    }
 
-	public void setItems(List<ITEM> items) {
-		this.items = items;
-	}
+    public void setItems(List<ITEM> items) {
+        this.items = items;
+    }
 
-	public void clear() {
-		if (items != null) {
-			items.clear();
-			notifyDataSetChanged();
-		} else {
-			Log.e(TAG, "clear() items is null");
-		}
-	}
+    public void clear() {
+        if (items != null) {
+            items.clear();
+            notifyDataSetChanged();
+        } else {
+            Log.e(TAG, "clear() items is null");
+        }
+    }
 }
