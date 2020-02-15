@@ -9,6 +9,8 @@ public abstract class Cell<ITEM, LISTENER extends Cell.Listener<ITEM>> extends R
     private ITEM item;
     private LISTENER listener;
 
+    private View.OnAttachStateChangeListener viewStateChangeListener;
+
     public Cell(View view) {
         super(view);
         view.setOnClickListener(new View.OnClickListener() {
@@ -17,17 +19,28 @@ public abstract class Cell<ITEM, LISTENER extends Cell.Listener<ITEM>> extends R
                 if (listener != null) listener.onCellClicked(getItem());
             }
         });
-        view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View v) {
-            }
+        attachListener(view);
+    }
 
-            @Override
-            public void onViewDetachedFromWindow(View v) {
-                clearResources();
-                v.removeOnAttachStateChangeListener(this);
-            }
-        });
+    private void attachListener(View view) {
+        if (viewStateChangeListener == null) {
+            viewStateChangeListener = new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    attachResources();
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    clearResources();
+                }
+            };
+            view.addOnAttachStateChangeListener(viewStateChangeListener);
+        } else {
+            view.removeOnAttachStateChangeListener(viewStateChangeListener);
+            viewStateChangeListener = null;
+            attachListener(view);
+        }
     }
 
     protected final ITEM getItem() {
@@ -44,6 +57,10 @@ public abstract class Cell<ITEM, LISTENER extends Cell.Listener<ITEM>> extends R
     }
 
     protected void clearResources() {
+    }
+
+    protected void attachResources() {
+
     }
 
     void setCellDelegate(LISTENER listener) {

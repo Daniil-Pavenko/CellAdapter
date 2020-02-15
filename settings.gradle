@@ -1,1 +1,1 @@
-include ':celladapter', ':sample'
+include ':celladapter', ':sample', ':appmodule'

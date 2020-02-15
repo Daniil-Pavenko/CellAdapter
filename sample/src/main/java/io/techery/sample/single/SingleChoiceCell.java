@@ -7,11 +7,12 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import io.techery.celladapter.Cell;
 import io.techery.celladapter.Layout;
+import io.techery.celladapter.LayoutName;
 import io.techery.celladapter.select.mode.SelectionManager;
 import io.techery.sample.BaseSelectableCell;
 import io.techery.sample.R;
 
-@Layout(R.layout.item_single)
+@LayoutName("item_single")
 public class SingleChoiceCell extends BaseSelectableCell<SingleChoiceModel, Cell.Listener<SingleChoiceModel>> {
 
     @BindView(R.id.rb_single) RadioButton radioButton;

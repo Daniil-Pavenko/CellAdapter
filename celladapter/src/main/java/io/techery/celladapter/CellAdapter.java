@@ -32,9 +32,11 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
     private static final String TAG = "CellAdapter";
 
     private LayoutInflater layoutInflater;
+    private Context context;
 
     public CellAdapter(Context context) {
         layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.context = context;
     }
 
     public void registerCell(Class<?> itemClass,
@@ -71,8 +73,18 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
     }
 
     private Cell buildCell(Class<? extends Cell> cellClass, ViewGroup parent) {
-        Layout layoutAnnotation = cellClass.getAnnotation(Layout.class);
-        View cellView = layoutInflater.inflate(layoutAnnotation.value(), parent, false);
+        int layoutResId;
+        if (cellClass.getAnnotation(Layout.class) != null) {
+            Layout layoutAnnotation = cellClass.getAnnotation(Layout.class);
+            layoutResId = layoutAnnotation.value();
+        } else if (cellClass.getAnnotation(LayoutName.class) != null) {
+            LayoutName layoutAnnotation = cellClass.getAnnotation(LayoutName.class);
+            layoutResId = context.getResources().getIdentifier(layoutAnnotation.value(), "layout", context.getPackageName());
+        } else {
+            throw new IllegalArgumentException("Please annotate your class for declare layout res id");
+        }
+
+        View cellView = layoutInflater.inflate(layoutResId, parent, false);
         RecyclerView.ViewHolder cellObject = null;
         try {
             Constructor<? extends RecyclerView.ViewHolder> constructor = cellClass.getConstructor(View.class);
