@@ -1,20 +1,23 @@
 package io.techery.celladapter;
 
 import android.content.Context;
+import android.os.Parcelable;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.SparseArrayCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * @param <ITEM> is yours POJO model
@@ -29,6 +32,7 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
     private final SparseArray<Cell.Listener> typeListenerMapping = new SparseArray<>();
     protected List<ITEM> items = new ArrayList<>();
     protected RecyclerView.RecycledViewPool recycledViewPool = new RecyclerView.RecycledViewPool();
+    protected SparseArrayCompat<Parcelable> recyclerStates = new SparseArrayCompat<>();
 
     private static final String TAG = "CellAdapter";
 
@@ -70,10 +74,14 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
         Class<? extends Cell> cellClass = itemCellMap.get(itemClass);
         Cell cell = buildCell(cellClass, parent);
         cell.setCellDelegate(typeListenerMapping.get(viewType));
+        setupNestedRecyclerView(cell);
+        return cell;
+    }
+
+    protected void setupNestedRecyclerView(Cell cell) {
         if (cell.onNestedRecyclerView() != null) {
             cell.onNestedRecyclerView().setRecycledViewPool(recycledViewPool);
         }
-        return cell;
     }
 
     private Cell buildCell(Class<? extends Cell> cellClass, ViewGroup parent) {
@@ -104,6 +112,16 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
         ITEM item = getItem(position);
         cell.prepareForReuse();
         cell.fillWithItem(item);
+        if (cell.onNestedRecyclerView() != null) {
+            cell.onNestedRecyclerView().getLayoutManager().onRestoreInstanceState(recyclerStates.get(position));
+        }
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull Cell holder) {
+        if (holder.onNestedRecyclerView() != null) {
+            recyclerStates.append(holder.getAdapterPosition(), holder.onNestedRecyclerView().getLayoutManager().onSaveInstanceState());
+        }
     }
 
     @Override

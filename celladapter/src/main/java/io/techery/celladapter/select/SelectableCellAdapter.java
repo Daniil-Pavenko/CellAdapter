@@ -33,6 +33,7 @@ public class SelectableCellAdapter<ITEM> extends CellAdapter<ITEM> {
         if (cell instanceof SelectableCell) {
             ((SelectableCell) cell).setSelectionManager(selectionManager);
         }
+        setupNestedRecyclerView(cell);
         return cell;
     }
 
