@@ -28,6 +28,7 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
     private final List<Class> viewTypes = new ArrayList<>();
     private final SparseArray<Cell.Listener> typeListenerMapping = new SparseArray<>();
     protected List<ITEM> items = new ArrayList<>();
+    protected RecyclerView.RecycledViewPool recycledViewPool = new RecyclerView.RecycledViewPool();
 
     private static final String TAG = "CellAdapter";
 
@@ -69,6 +70,9 @@ public class CellAdapter<ITEM> extends RecyclerView.Adapter<Cell> {
         Class<? extends Cell> cellClass = itemCellMap.get(itemClass);
         Cell cell = buildCell(cellClass, parent);
         cell.setCellDelegate(typeListenerMapping.get(viewType));
+        if (cell.onNestedRecyclerView() != null) {
+            cell.onNestedRecyclerView().setRecycledViewPool(recycledViewPool);
+        }
         return cell;
     }
 

@@ -2,6 +2,7 @@ package io.techery.celladapter;
 
 import android.view.View;
 
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 public abstract class Cell<ITEM, LISTENER extends Cell.Listener<ITEM>> extends RecyclerView.ViewHolder {
@@ -60,7 +61,6 @@ public abstract class Cell<ITEM, LISTENER extends Cell.Listener<ITEM>> extends R
     }
 
     protected void attachResources() {
-
     }
 
     void setCellDelegate(LISTENER listener) {
@@ -74,6 +74,11 @@ public abstract class Cell<ITEM, LISTENER extends Cell.Listener<ITEM>> extends R
     void fillWithItem(ITEM item) {
         setItem(item);
         syncUiWithItem();
+    }
+
+    @Nullable
+    public RecyclerView onNestedRecyclerView() {
+        return null;
     }
 
     public interface Listener<ITEM> {
